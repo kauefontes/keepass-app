@@ -7,22 +7,45 @@ import { styles } from './styles'
 import { Input } from '../../components/Input'
 import { Button } from '../../components/Button'
 import { HeaderForm } from '../../components/HeaderForm'
+import { useAsyncStorage } from '@react-native-async-storage/async-storage'
+import Toast from 'react-native-toast-message'
 
 export function Form() {
   const [name, setName] = useState("")
   const [user, setUser] = useState("")
   const [password, setPassword] = useState("")
 
-  function handleSubmit(){
-    const id = uuid.v4()
-    const data = {
-      id,
-      name,
-      user,
-      password
-    }
+  const { getItem, setItem } = useAsyncStorage("@keepass:formData")
 
-    console.log(data)
+  async function handleSubmit(){
+    try {
+      const id = uuid.v4()
+      const formData = {
+        id,
+        name,
+        user,
+        password
+      }
+
+      const response = await getItem()
+      const previousData = response ? JSON.parse(response) : []
+
+      const data = [...previousData, formData]
+  
+      await setItem(JSON.stringify(data))
+
+      Toast.show({
+        type: 'success',
+        text1:'Success!'
+    })
+      console.log(data)
+    } catch (error) {
+      console.log(error)
+      Toast.show({
+          type: 'error',
+          text1:'Failed!'
+      })
+    }
 
   }
   
